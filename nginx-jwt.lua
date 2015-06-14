@@ -22,7 +22,7 @@ end
 
 local M = {}
 
-function M.auth(claim_specs)
+function M.auth(claim_specs,claims_as_headers)
     -- require Authorization request header
     local auth_header = ngx.var.http_Authorization
 
@@ -40,6 +40,19 @@ function M.auth(claim_specs)
             ngx.exit(ngx.HTTP_UNAUTHORIZED)
         else
             ngx.log(ngx.INFO, "Token: " .. token)
+
+            -- require claims and pass them in as headers
+            if claims_as_headers ~= nil then
+                for name in string.gmatch(claims_as_headers, "%S+") do
+                    local value = jwt_obj.payload[name]
+                    if value ~= nil then
+                        ngx.header[name] = value
+                    else
+                        ngx.log(ngx.WARN, "User did not satisfy claim: ".. name)
+                        ngx.exit(ngx.HTTP_UNAUTHORIZED)
+                    end
+                end
+            end
 
             -- require valid JWT
             local jwt_obj = jwt:verify(secret, token)
