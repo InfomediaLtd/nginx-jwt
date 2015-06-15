@@ -55,6 +55,7 @@ function M.auth(claim_specs,claims_as_headers)
                         local value = jwt_obj.payload[name]
                         if value ~= nil then
                             ngx.header[name] = value
+                            ngx.req.set_header(name,value)
                         else
                             ngx.log(ngx.WARN, "User did not satisfy claim: " .. name)
                             ngx.exit(ngx.HTTP_UNAUTHORIZED)
