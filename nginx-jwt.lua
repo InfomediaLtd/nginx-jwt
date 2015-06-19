@@ -22,9 +22,14 @@ end
 
 local M = {}
 
-function M.auth(claim_specs,claims_as_headers)
+function M.auth(claim_specs,claims_as_headers, fallback_to_cookies)
     -- require Authorization request header
     local auth_header = ngx.var.http_Authorization
+
+    -- fallback to cookies if required
+    if auth_header == nil and fallback_to_cookies then
+        auth_header = ngx.var.cookie_Authorization
+    end
 
     if auth_header == nil then
         ngx.log(ngx.WARN, "No Authorization header")
