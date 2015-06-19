@@ -59,7 +59,6 @@ function M.auth(claim_specs,claims_as_headers, fallback_to_cookies)
                     for name in string.gmatch(claims_as_headers, "%S+") do
                         local value = jwt_obj.payload[name]
                         if value ~= nil then
-                            ngx.header[name] = value
                             ngx.req.set_header(name,value)
                         else
                             ngx.log(ngx.WARN, "User did not satisfy claim: " .. name)
