@@ -47,7 +47,7 @@ function M.auth(claim_specs,claims_as_headers, fallback_to_cookies)
             ngx.log(ngx.INFO, "Token: " .. token)
 
             -- require valid JWT
-            local jwt_obj = jwt:verify(secret, token)
+            local jwt_obj = jwt:verify(secret, token, 0)
             if jwt_obj.verified == false then
                 ngx.log(ngx.WARN, "Invalid token: ".. jwt_obj.reason)
                 ngx.exit(ngx.HTTP_UNAUTHORIZED)
