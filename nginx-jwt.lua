@@ -42,7 +42,7 @@ function M.auth(claim_specs, claims_as_headers, fallback_to_cookies, onlyVerifie
     else
         ngx.log(ngx.INFO, "Authorization: " .. auth_header)
 
-        local _, _, token = string.find(auth_header, "Bearer%s+(.+)")
+        local _, _, token = string.find(auth_header, "Bearer%s*(.+)")
 
         if token == nil then
             if onlyVerified == true then
