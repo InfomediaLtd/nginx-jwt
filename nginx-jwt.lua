@@ -22,7 +22,7 @@ end
 
 local M = {}
 
-function M.auth(claim_specs, claims_as_headers, fallback_to_cookies, onlyVerified)
+function M.auth(claim_specs, claims_as_headers, fallback_to_cookies, onlyVerified, secretToUse)
     -- require Authorization request header
     local auth_header = ngx.var.http_Authorization
 
@@ -33,6 +33,9 @@ function M.auth(claim_specs, claims_as_headers, fallback_to_cookies, onlyVerifie
 
     -- default to only allow verified tokens
     if onlyVerified==nil then onlyVerified = true end
+
+    -- allow overriding the global secret
+    if secretToUse==nil then secretToUse = secret end
 
     if auth_header == nil then
         if onlyVerified == true then
@@ -53,7 +56,7 @@ function M.auth(claim_specs, claims_as_headers, fallback_to_cookies, onlyVerifie
         else
             ngx.log(ngx.INFO, "Token: " .. token)
 
-            local jwt_obj = jwt:verify(secret, token, 0)
+            local jwt_obj = jwt:verify(secretToUse, token, 0)
 
             if onlyVerified == true and jwt_obj.verified == false then
 
