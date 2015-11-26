@@ -5,7 +5,7 @@ local secret = os.getenv("JWT_SECRET")
 
 assert(secret ~= nil, "Environment variable JWT_SECRET not set")
 
-function decode(secret)
+if os.getenv("JWT_SECRET_IS_BASE64_ENCODED") == 'true' then
     -- convert from URL-safe Base64 to Base64
     local r = #secret % 4
     if r == 2 then
@@ -18,17 +18,11 @@ function decode(secret)
 
     -- convert from Base64 to UTF-8 string
     secret = basexx.from_base64(secret)
-
-    return secret
-end
-
-if os.getenv("JWT_SECRET_IS_BASE64_ENCODED") == 'true' then
-    secret = decode(secret)
 end
 
 local M = {}
 
-function M.auth(claim_specs, claims_as_headers, fallback_to_cookies, onlyVerified, secretToUse, secretToUseIsBase64Encoded)
+function M.auth(claim_specs, claims_as_headers, fallback_to_cookies, onlyVerified)
     -- require Authorization request header
     local auth_header = ngx.var.http_Authorization
 
@@ -39,15 +33,6 @@ function M.auth(claim_specs, claims_as_headers, fallback_to_cookies, onlyVerifie
 
     -- default to only allow verified tokens
     if onlyVerified==nil then onlyVerified = true end
-
-    -- allow overriding the global secret
-    if secretToUse == nil then
-        secretToUse = secret
-    else
-        if secretToUseIsBase64Encoded == true then
-            secretToUse = decode(secretToUse)
-        end
-    end
 
     if auth_header == nil then
         if onlyVerified == true then
@@ -68,7 +53,7 @@ function M.auth(claim_specs, claims_as_headers, fallback_to_cookies, onlyVerifie
         else
             ngx.log(ngx.INFO, "Token: " .. token)
 
-            local jwt_obj = jwt:verify(secretToUse, token, 0)
+            local jwt_obj = jwt:verify(secret, token, 0)
 
             if onlyVerified == true and jwt_obj.verified == false then
 
