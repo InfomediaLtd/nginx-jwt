@@ -22,7 +22,7 @@ end
 
 local M = {}
 
-function M.auth(claim_specs, claims_as_headers, fallback_to_cookies, onlyVerified)
+function M.auth(claim_specs, claims_as_headers, fallback_to_cookies, onlyVerified, redirectionUrl)
     -- require Authorization request header
     local auth_header = ngx.var.http_Authorization
 
@@ -37,7 +37,7 @@ function M.auth(claim_specs, claims_as_headers, fallback_to_cookies, onlyVerifie
     if auth_header == nil then
         if onlyVerified == true then
             ngx.log(ngx.WARN, "No Authorization header")
-            ngx.exit(ngx.HTTP_UNAUTHORIZED)
+            if (redirectionUrl == nil) then ngx.exit(ngx.HTTP_UNAUTHORIZED) else ngx.redirect(redirectionUrl) end
         end
     else
         ngx.log(ngx.INFO, "Authorization: " .. auth_header)
@@ -48,7 +48,7 @@ function M.auth(claim_specs, claims_as_headers, fallback_to_cookies, onlyVerifie
             if onlyVerified == true then
                 -- require Bearer token
                 ngx.log(ngx.WARN, "Missing token")
-                ngx.exit(ngx.HTTP_UNAUTHORIZED)
+                if (redirectionUrl == nil) then ngx.exit(ngx.HTTP_UNAUTHORIZED) else ngx.redirect(redirectionUrl) end
             end
         else
             ngx.log(ngx.INFO, "Token: " .. token)
@@ -59,7 +59,7 @@ function M.auth(claim_specs, claims_as_headers, fallback_to_cookies, onlyVerifie
 
                 -- require valid JWT
                 ngx.log(ngx.WARN, "Invalid token: ".. jwt_obj.reason)
-                ngx.exit(ngx.HTTP_UNAUTHORIZED)
+                if (redirectionUrl == nil) then ngx.exit(ngx.HTTP_UNAUTHORIZED) else ngx.redirect(redirectionUrl) end
 
             else
 
@@ -83,7 +83,7 @@ function M.auth(claim_specs, claims_as_headers, fallback_to_cookies, onlyVerifie
                                 ngx.req.set_header(name,value)
                             else
                                 ngx.log(ngx.WARN, "User did not satisfy claim: " .. name)
-                                ngx.exit(ngx.HTTP_UNAUTHORIZED)
+                                if (redirectionUrl == nil) then ngx.exit(ngx.HTTP_UNAUTHORIZED) else ngx.redirect(redirectionUrl) end
                             end
                         end
                     end
@@ -142,7 +142,7 @@ function M.auth(claim_specs, claims_as_headers, fallback_to_cookies, onlyVerifie
 
                         if blocking_claim ~= "" then
                             ngx.log(ngx.WARN, "User did not satisfy claim: ".. blocking_claim)
-                            ngx.exit(ngx.HTTP_UNAUTHORIZED)
+                            if (redirectionUrl == nil) then ngx.exit(ngx.HTTP_UNAUTHORIZED) else ngx.redirect(redirectionUrl) end
                         end
                     end
 
