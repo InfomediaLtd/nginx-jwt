@@ -22,13 +22,21 @@ end
 
 local M = {}
 
-function M.auth(claim_specs, claims_as_headers, fallback_to_cookies, onlyVerified, redirectionUrl)
+function M.auth(claim_specs, claims_as_headers, fallback_to_cookies, fallback_to_querystring, onlyVerified, redirectionUrl)
     -- require Authorization request header
     local auth_header = ngx.var.http_Authorization
 
     -- fallback to cookies if required
     if auth_header == nil and fallback_to_cookies then
         auth_header = ngx.var.cookie_Authorization
+    end
+    
+    -- fallback to querystring if required (eg. for CORS requests)
+    if auth_header == nil and fallback_to_querystring then
+        local queryParams = ngx.req.get_query_args()
+        if (queryParams ~= nil and queryParams.Authorization ~= nil) then
+            auth_header = queryParams.Authorization    
+        end
     end
 
     -- default to only allow verified tokens
